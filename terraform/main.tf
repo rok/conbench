@@ -13,11 +13,12 @@ terraform {
   }
 
   # Optional: Configure backend for state storage
-  # backend "s3" {
-  #   bucket = "your-terraform-state-bucket"
-  #   key    = "conbench/terraform.tfstate"
-  #   region = "us-east-1"
-  # }
+  backend "s3" {
+    bucket = "arrow-terraform-state"
+    key    = "conbench/terraform.tfstate"
+    region = "us-east-1"
+    use_lockfile = true
+  }
 }
 
 provider "aws" {

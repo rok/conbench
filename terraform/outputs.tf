@@ -88,6 +88,17 @@ output "rds_master_username" {
   sensitive   = true
 }
 
+# Security Group Outputs
+output "eks_nodes_security_group_id" {
+  description = "Security group ID for EKS worker nodes"
+  value       = aws_security_group.eks_nodes.id
+}
+
+output "rds_security_group_id" {
+  description = "Security group ID for RDS instance"
+  value       = aws_security_group.rds.id
+}
+
 # Configuration Outputs
 output "configure_kubectl" {
   description = "Command to configure kubectl"
