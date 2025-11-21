@@ -12,7 +12,7 @@ resource "aws_db_instance" "conbench" {
   # Only set storage config for new instances, not when restoring from snapshot
   allocated_storage     = var.db_snapshot_identifier == "" ? var.db_allocated_storage : null
   storage_type          = var.db_snapshot_identifier == "" ? "gp3" : null
-  storage_encrypted     = true
+  storage_encrypted     = var.db_snapshot_identifier == "" ? true : null  # Inherited from snapshot
   max_allocated_storage = var.db_max_allocated_storage
 
   # Restore from snapshot if provided, otherwise create new
@@ -76,6 +76,8 @@ resource "aws_db_instance" "conbench" {
       # When restoring from snapshot, storage config is inherited
       allocated_storage,
       storage_type,
+      storage_encrypted,
+      kms_key_id,
     ]
   }
 }
