@@ -136,3 +136,19 @@ output "domain_name" {
   description = "Configured domain name"
   value       = var.domain_name
 }
+
+# CloudFront and Crossbow Outputs
+output "crossbow_subdomain_url" {
+  description = "Crossbow subdomain URL"
+  value       = var.create_crossbow_subdomain ? "https://crossbow.${var.domain_name}" : "Not created"
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for crossbow subdomain"
+  value       = var.create_crossbow_subdomain ? aws_cloudfront_distribution.crossbow[0].id : "Not created"
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront domain name"
+  value       = var.create_crossbow_subdomain ? aws_cloudfront_distribution.crossbow[0].domain_name : "Not created"
+}

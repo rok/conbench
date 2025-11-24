@@ -172,6 +172,12 @@ variable "create_www_record" {
   default     = false
 }
 
+variable "create_crossbow_subdomain" {
+  description = "Create crossbow subdomain with CloudFront + S3"
+  type        = bool
+  default     = false
+}
+
 variable "alb_dns_name" {
   description = "ALB DNS name (get this after ingress creates the ALB)"
   type        = string
