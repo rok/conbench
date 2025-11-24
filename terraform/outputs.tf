@@ -110,3 +110,29 @@ output "db_connection_string" {
   value       = "postgresql://${aws_db_instance.conbench.username}@${aws_db_instance.conbench.address}:${aws_db_instance.conbench.port}/${aws_db_instance.conbench.db_name}"
   sensitive   = true
 }
+
+# Route53 and Domain Outputs
+output "route53_zone_id" {
+  description = "Route53 hosted zone ID"
+  value       = try(aws_route53_zone.main.zone_id, "")
+}
+
+output "route53_nameservers" {
+  description = "Route53 nameservers - configure these in Cloudflare"
+  value       = try(aws_route53_zone.main.name_servers, [])
+}
+
+output "acm_certificate_arn" {
+  description = "ACM certificate ARN - use this in your Kubernetes ingress"
+  value       = try(aws_acm_certificate.main.arn, "")
+}
+
+output "acm_certificate_status" {
+  description = "ACM certificate validation status"
+  value       = try(aws_acm_certificate.main.status, "")
+}
+
+output "domain_name" {
+  description = "Configured domain name"
+  value       = var.domain_name
+}

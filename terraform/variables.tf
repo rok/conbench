@@ -146,3 +146,40 @@ variable "db_apply_immediately" {
   type        = bool
   default     = false
 }
+
+# Domain and DNS Variables
+variable "domain_name" {
+  description = "Domain name for the application (e.g., yourdomain.com)"
+  type        = string
+  default     = ""
+}
+
+variable "include_wildcard_cert" {
+  description = "Include wildcard subdomain (*.domain.com) in ACM certificate"
+  type        = bool
+  default     = true
+}
+
+variable "create_route53_record" {
+  description = "Create Route53 A record for ALB (set to false initially, update after ALB is created)"
+  type        = bool
+  default     = false
+}
+
+variable "create_www_record" {
+  description = "Create www subdomain CNAME record"
+  type        = bool
+  default     = false
+}
+
+variable "alb_dns_name" {
+  description = "ALB DNS name (get this after ingress creates the ALB)"
+  type        = string
+  default     = ""
+}
+
+variable "alb_zone_id" {
+  description = "ALB hosted zone ID (get this after ingress creates the ALB)"
+  type        = string
+  default     = ""
+}
