@@ -189,3 +189,36 @@ variable "alb_zone_id" {
   type        = string
   default     = ""
 }
+
+# ELB Variables (for conbench.arrow-dev.org)
+variable "elb_dns_name" {
+  description = "ELB DNS name for conbench endpoint"
+  type        = string
+  default     = "a1124e533393c450ea143b5d49b7f373-1467638017.us-east-1.elb.amazonaws.com"
+}
+
+variable "elb_zone_id" {
+  description = "ELB hosted zone ID for conbench endpoint"
+  type        = string
+  default     = "Z35SXDOTRQ7X7K"
+}
+
+# Buildkite Variables
+variable "buildkite_agent_token" {
+  description = "Buildkite agent token for authentication"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "buildkite_agent_amis" {
+  description = "AMI IDs for Buildkite agents by platform"
+  type        = map(string)
+  default = {
+    # Amazon Linux 2023 AMIs (update these periodically)
+    # AMD64 (x86_64)
+    "amd64-linux" = "ami-0453ec754f44f9a4a" # Amazon Linux 2023 AMD64 us-east-1
+    # ARM64 (aarch64)
+    "arm64-linux" = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 ARM64 us-east-1
+  }
+}

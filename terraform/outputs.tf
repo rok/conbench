@@ -111,25 +111,46 @@ output "db_connection_string" {
   sensitive   = true
 }
 
-# Route53 and Domain Outputs
+# Route53 and Domain Outputs - arrow-dev.org
+output "arrow_dev_zone_id" {
+  description = "arrow-dev.org hosted zone ID"
+  value       = data.aws_route53_zone.arrow_dev.zone_id
+}
+
+output "arrow_dev_certificate_arn" {
+  description = "ACM certificate ARN for arrow-dev.org - use this in your Kubernetes ingress"
+  value       = aws_acm_certificate.arrow_dev.arn
+}
+
+output "arrow_dev_certificate_status" {
+  description = "ACM certificate validation status for arrow-dev.org"
+  value       = aws_acm_certificate.arrow_dev.status
+}
+
+output "conbench_url" {
+  description = "Conbench application URL"
+  value       = "https://conbench.arrow-dev.org"
+}
+
+# Route53 and Domain Outputs - Custom Domain (if configured)
 output "route53_zone_id" {
-  description = "Route53 hosted zone ID"
-  value       = try(aws_route53_zone.main.zone_id, "")
+  description = "Route53 hosted zone ID for custom domain"
+  value       = try(aws_route53_zone.main[0].zone_id, "")
 }
 
 output "route53_nameservers" {
   description = "Route53 nameservers - configure these in Cloudflare"
-  value       = try(aws_route53_zone.main.name_servers, [])
+  value       = try(aws_route53_zone.main[0].name_servers, [])
 }
 
 output "acm_certificate_arn" {
-  description = "ACM certificate ARN - use this in your Kubernetes ingress"
-  value       = try(aws_acm_certificate.main.arn, "")
+  description = "ACM certificate ARN for custom domain - use this in your Kubernetes ingress"
+  value       = try(aws_acm_certificate.main[0].arn, "")
 }
 
 output "acm_certificate_status" {
-  description = "ACM certificate validation status"
-  value       = try(aws_acm_certificate.main.status, "")
+  description = "ACM certificate validation status for custom domain"
+  value       = try(aws_acm_certificate.main[0].status, "")
 }
 
 output "domain_name" {
@@ -140,7 +161,7 @@ output "domain_name" {
 # CloudFront and Crossbow Outputs
 output "crossbow_subdomain_url" {
   description = "Crossbow subdomain URL"
-  value       = var.create_crossbow_subdomain ? "https://crossbow.${var.domain_name}" : "Not created"
+  value       = var.create_crossbow_subdomain ? "https://crossbow.arrow-dev.org" : "Not created"
 }
 
 output "cloudfront_distribution_id" {
@@ -151,4 +172,32 @@ output "cloudfront_distribution_id" {
 output "cloudfront_domain_name" {
   description = "CloudFront domain name"
   value       = var.create_crossbow_subdomain ? aws_cloudfront_distribution.crossbow[0].domain_name : "Not created"
+}
+
+# Deployment Configuration Hints
+output "deployment_hints" {
+  description = "Hints for deploying Conbench application"
+  value = {
+    conbench_url              = "https://conbench.arrow-dev.org"
+    benchmarks_data_public    = "true"
+    db_name                   = "conbench_prod"
+    deployment_script         = "./terraform/deploy-conbench-to-eks.sh"
+    required_env_vars         = ["DB_PASSWORD", "SECRET_KEY", "REGISTRATION_KEY"]
+  }
+}
+
+# Buildkite Outputs
+output "buildkite_secrets_bucket" {
+  description = "S3 bucket for Buildkite secrets and bootstrap scripts"
+  value       = aws_s3_bucket.buildkite_secrets.bucket
+}
+
+output "buildkite_agent_queues" {
+  description = "Buildkite agent queue names"
+  value       = [for k, v in local.buildkite_stacks : v.queue]
+}
+
+output "buildkite_stack_names" {
+  description = "CloudFormation stack names for Buildkite agents"
+  value       = { for k, v in aws_cloudformation_stack.buildkite_agents : k => v.name }
 }

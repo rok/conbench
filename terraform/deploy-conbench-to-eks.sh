@@ -17,7 +17,7 @@ echo -e "${GREEN}Deploying Conbench to EKS${NC}"
 export DB_HOST=$(cd terraform && terraform output -raw rds_instance_address)
 export DB_PORT=$(cd terraform && terraform output -raw rds_instance_port)
 export DB_USERNAME=$(cd terraform && terraform output -raw rds_master_username)
-export DB_NAME="postgres"  # Or your actual database name
+export DB_NAME="${DB_NAME:-conbench_prod}"  # Default to conbench_prod
 
 echo -e "${YELLOW}Database configuration:${NC}"
 echo "  DB_HOST: $DB_HOST"
@@ -48,11 +48,11 @@ if [ -z "$REGISTRATION_KEY" ]; then
 fi
 
 # Optional: Set defaults for other variables
-export CONBENCH_INTENDED_BASE_URL="${CONBENCH_INTENDED_BASE_URL:-http://localhost:5000}"
+export CONBENCH_INTENDED_BASE_URL="${CONBENCH_INTENDED_BASE_URL:-https://conbench.arrow-dev.org}"
 export APPLICATION_NAME="${APPLICATION_NAME:-Conbench}"
-export BENCHMARKS_DATA_PUBLIC="${BENCHMARKS_DATA_PUBLIC:-false}"
+export BENCHMARKS_DATA_PUBLIC="${BENCHMARKS_DATA_PUBLIC:-true}"
 export FLASK_APP="${FLASK_APP:-conbench}"
-export DISTRIBUTION_COMMITS="${DISTRIBUTION_COMMITS:-}"
+export DISTRIBUTION_COMMITS="${DISTRIBUTION_COMMITS:-100}"
 export SVS_TYPE="${SVS_TYPE:-}"
 export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
 export GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET:-}"

@@ -4,7 +4,7 @@
 resource "aws_cloudfront_distribution" "crossbow" {
   count   = var.create_crossbow_subdomain ? 1 : 0
   enabled = true
-  aliases = ["crossbow.${var.domain_name}"]
+  aliases = ["crossbow.arrow-dev.org"]
 
   # S3 Origin - arrow-data bucket
   origin {
@@ -33,7 +33,7 @@ resource "aws_cloudfront_distribution" "crossbow" {
 
   # SSL Certificate
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.main.arn
+    acm_certificate_arn      = aws_acm_certificate.arrow_dev.arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -55,14 +55,14 @@ resource "aws_cloudfront_distribution" "crossbow" {
     }
   )
 
-  depends_on = [aws_acm_certificate_validation.main]
+  depends_on = [aws_acm_certificate_validation.arrow_dev]
 }
 
 # Route53 record for crossbow subdomain
 resource "aws_route53_record" "crossbow" {
   count   = var.create_crossbow_subdomain ? 1 : 0
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "crossbow.${var.domain_name}"
+  zone_id = data.aws_route53_zone.arrow_dev.zone_id
+  name    = "crossbow.arrow-dev.org"
   type    = "A"
 
   alias {
