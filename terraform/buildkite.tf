@@ -1,16 +1,21 @@
 # Buildkite Agent Infrastructure for Arrow Benchmarks
 
-# SSM Parameter for Buildkite Agent Token
+# Create a dedicated agent token for benchmark machines
+resource "buildkite_agent_token" "benchmark_machines" {
+  description = "BK agent token for Benchmark Machines on Arrow AWS account (NEW)"
+}
+
+# Store the agent token in AWS SSM Parameter Store
 resource "aws_ssm_parameter" "buildkite_agent_token" {
-  name        = "/buildkite/agent-token"
-  description = "Buildkite Agent Token for arrow-dev.org organization"
+  name        = "/buildkite/agent-token-benchmark-machines"
+  description = "Buildkite Agent Token for benchmark machines"
   type        = "SecureString"
-  value       = var.buildkite_agent_token
+  value       = buildkite_agent_token.benchmark_machines.token
 
   tags = merge(
     local.common_tags,
     {
-      Name = "buildkite-agent-token"
+      Name = "buildkite-agent-token-benchmark-machines"
     }
   )
 }
@@ -91,6 +96,7 @@ locals {
       on_demand_percentage = 100
     }
 
+    # TODO: macos agents requires custom image, we can prepare it with ansible or manually
     # # AMD64 mac2.metal for macOS benchmarks
     # amd64-mac2-metal-macos = {
     #   queue                = "amd64-mac2-metal-macos"
@@ -160,69 +166,32 @@ resource "aws_cloudformation_stack" "buildkite_agents" {
 }
 
 # ============================================================================
-# Buildkite Pipeline Management
+# Buildkite Pipeline Management (Optional - for testing)
 # ============================================================================
 
-locals {
-  # Define your pipelines here
-  conbench_pipelines = {
-    conbench-deploy = {
-      folder                = "conbench-deploy"
-      trigger_mode          = "none" # Options: none, code, deployment
-      publish_commit_status = false
-      build_branches        = false
-      build_pull_requests   = false
-    }
-    conbench-staging-deploy = {
-      folder                = "conbench-staging-deploy"
-      trigger_mode          = "none"
-      publish_commit_status = false
-      build_branches        = false
-      build_pull_requests   = false
-    }
-    conbench-rollback = {
-      folder                = "conbench-rollback"
-      trigger_mode          = "none"
-      publish_commit_status = false
-      build_branches        = false
-      build_pull_requests   = false
-    }
-  }
-}
+# Example: Create a simple test pipeline
+# Uncomment to create a Buildkite pipeline via Terraform
 
-# Create Buildkite pipelines for Conbench
-resource "buildkite_pipeline" "conbench_pipelines" {
-  for_each = local.conbench_pipelines
-
-  name       = each.key
+resource "buildkite_pipeline" "test_pipeline" {
+  name       = "conbench-test"
   repository = "https://github.com/conbench/conbench.git"
 
-  # Initial pipeline upload step
-  # This step runs on the agent and uploads the actual pipeline definition from the repo
+  # Simple inline step
   steps = <<-EOT
-  agents:
-    queue: "conbench"
   steps:
-    - label: ":pipeline: Pipeline upload"
-      command: buildkite-agent pipeline upload .buildkite/${each.value.folder}/pipeline.yml
+    - label: ":hammer: Test Build"
+      command: "echo 'Hello from Buildkite!'"
+      agents:
+        queue: "amd64-m5-4xlarge-linux"
   EOT
 
   default_branch = "main"
 
   provider_settings = {
-    trigger_mode                                  = each.value.trigger_mode
-    publish_commit_status                         = each.value.publish_commit_status
-    build_branches                                = each.value.build_branches
-    build_pull_requests                           = each.value.build_pull_requests
+    trigger_mode                                  = "none"
+    publish_commit_status                         = false
+    build_branches                                = false
+    build_pull_requests                           = false
     skip_pull_request_builds_for_existing_commits = true
   }
 }
-
-# Example: Create a scheduled pipeline
-# resource "buildkite_pipeline_schedule" "nightly_benchmarks" {
-#   pipeline_id = buildkite_pipeline.conbench_pipelines["conbench-deploy"].id
-#   label       = "Nightly Benchmarks"
-#   cronline    = "0 2 * * *" # Run at 2 AM daily
-#   branch      = "main"
-#   enabled     = true
-# }

@@ -212,7 +212,7 @@ variable "buildkite_agent_token" {
 }
 
 variable "buildkite_api_token" {
-  description = "Buildkite API token for managing pipelines (get from https://buildkite.com/user/api-access-tokens)"
+  description = "Buildkite API token for managing pipelines and agent tokens (get from https://buildkite.com/user/api-access-tokens - requires scopes: graphql, read_pipelines, write_pipelines, read_organizations)"
   type        = string
   sensitive   = true
   default     = ""

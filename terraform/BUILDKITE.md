@@ -21,10 +21,14 @@ Each stack:
 
 Before deploying, you need:
 
-1. **Buildkite Agent Token**
-   - Get it from your Buildkite organization settings
-   - Go to: https://buildkite.com/organizations/YOUR_ORG/agents
-   - Create a new agent token or use an existing one
+1. **Buildkite API Token** (for Terraform to manage pipelines and agent tokens)
+   - Go to: https://buildkite.com/user/api-access-tokens/new
+   - Required scopes:
+     - `graphql` (required for creating agent tokens and pipelines)
+     - `read_pipelines`
+     - `write_pipelines`
+     - `read_organizations`
+   - Set in `terraform.tfvars` as `buildkite_api_token`
 
 2. **AWS Credentials**
    - AWS CLI configured with appropriate permissions
@@ -32,19 +36,31 @@ Before deploying, you need:
 
 ## Setup Instructions
 
-### 1. Configure Buildkite Agent Token
+### 1. Configure Buildkite API Token
 
-Set the agent token in one of two ways:
+The Buildkite API token is used by Terraform to create agent tokens and pipelines automatically.
 
-**Option A: Environment Variable (Recommended)**
-```bash
-export TF_VAR_buildkite_agent_token="your-buildkite-agent-token-here"
-```
+**Create a new API token:**
+1. Go to https://buildkite.com/user/api-access-tokens/new
+2. Select these scopes:
+   - ☑ `graphql` (required)
+   - ☑ `read_pipelines`
+   - ☑ `write_pipelines`
+   - ☑ `read_organizations`
+3. Click "Create New API Access Token"
+4. Copy the token
 
-**Option B: Update terraform.tfvars**
+**Configure in terraform.tfvars:**
 ```hcl
-buildkite_agent_token = "your-buildkite-agent-token-here"
+buildkite_api_token = "bkua_xxxxxxxxxxxxxxxxxxxxx"
 ```
+
+Or use environment variable:
+```bash
+export TF_VAR_buildkite_api_token="bkua_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Note:** Terraform will automatically create the agent token for you. You don't need to manually create an agent token.
 
 ### 2. (Optional) Upload Environment Files to S3
 
@@ -81,6 +97,12 @@ terraform plan -var-file=terraform.tfvars
 # Apply the configuration
 terraform apply -var-file=terraform.tfvars
 ```
+
+**What happens during deployment:**
+1. Terraform creates an agent token in Buildkite via the API
+2. The token is stored in AWS SSM Parameter Store
+3. Three CloudFormation stacks are created for the agent types
+4. A test pipeline is created in Buildkite
 
 ### 4. Verify Deployment
 
