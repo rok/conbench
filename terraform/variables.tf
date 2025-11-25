@@ -211,6 +211,19 @@ variable "buildkite_agent_token" {
   default     = ""
 }
 
+variable "buildkite_api_token" {
+  description = "Buildkite API token for managing pipelines (get from https://buildkite.com/user/api-access-tokens)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "buildkite_org" {
+  description = "Buildkite organization slug"
+  type        = string
+  default     = "apache-arrow" # Change to your Buildkite organization slug
+}
+
 # variable "buildkite_agent_amis" {
 #   description = "AMI IDs for Buildkite agents by platform"
 #   type        = map(string)
@@ -220,7 +233,7 @@ variable "buildkite_agent_token" {
 #     "amd64-linux" = "ami-0453ec754f44f9a4a" # Amazon Linux 2023 AMD64 us-east-1
 #     # ARM64 (aarch64)
 #     "arm64-linux" = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 ARM64 us-east-1
-#     # macOS Sonoma (update AMI ID for your region and desired macOS version)
+#     # macOS Tahoe
 #     "amd64-macos" = "ami-0ef51d32f7d6e780d" # macOS Tahoe 26.x us-east-1
 #   }
 # }

@@ -187,11 +187,6 @@ output "deployment_hints" {
 }
 
 # Buildkite Outputs
-output "buildkite_secrets_bucket" {
-  description = "S3 bucket for Buildkite secrets and bootstrap scripts"
-  value       = aws_s3_bucket.buildkite_secrets.bucket
-}
-
 output "buildkite_agent_queues" {
   description = "Buildkite agent queue names"
   value       = [for k, v in local.buildkite_stacks : v.queue]

@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
     }
+    buildkite = {
+      source  = "buildkite/buildkite"
+      version = "~> 1.0"
+    }
   }
 
   # Optional: Configure backend for state storage
@@ -47,6 +51,12 @@ provider "kubernetes" {
       var.aws_profile != "" ? ["--profile", var.aws_profile] : []
     )
   }
+}
+
+# Provider for Buildkite (for managing pipelines and teams)
+provider "buildkite" {
+  api_token    = var.buildkite_api_token
+  organization = var.buildkite_org
 }
 
 locals {
