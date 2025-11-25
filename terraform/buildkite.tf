@@ -113,7 +113,7 @@ locals {
       tags                 = ["arch=arm64", "os=linux", "instance=t4g-2xlarge"]
       instance             = "t4g.2xlarge"
       platform             = "linux"
-      ami                  = var.buildkite_agent_amis["arm64-linux"]
+      # ami                  = var.buildkite_agent_amis["arm64-linux"]
       min_size             = 0
       max_size             = 4
       on_demand_percentage = 100
@@ -125,7 +125,7 @@ locals {
       tags                 = ["arch=amd64", "os=linux", "instance=m5-4xlarge"]
       instance             = "m5.4xlarge"
       platform             = "linux"
-      ami                  = var.buildkite_agent_amis["amd64-linux"]
+      # ami                  = var.buildkite_agent_amis["amd64-linux"]
       min_size             = 0
       max_size             = 4
       on_demand_percentage = 100
@@ -137,9 +137,21 @@ locals {
       tags                 = ["arch=amd64", "os=linux", "instance=c6a-4xlarge"]
       instance             = "c6a.4xlarge"
       platform             = "linux"
-      ami                  = var.buildkite_agent_amis["amd64-linux"]
+      # ami                  = var.buildkite_agent_amis["amd64-linux"]
       min_size             = 0
       max_size             = 4
+      on_demand_percentage = 100
+    }
+
+    # AMD64 mac2.metal for macOS benchmarks
+    amd64-mac2-metal-macos = {
+      queue                = "amd64-mac2-metal-macos"
+      tags                 = ["arch=amd64", "os=macos", "instance=mac2-metal"]
+      instance             = "mac2.metal"
+      platform             = "macos"
+      # ami                  = var.buildkite_agent_amis["amd64-macos"]
+      min_size             = 0
+      max_size             = 2
       on_demand_percentage = 100
     }
   }
@@ -161,7 +173,7 @@ resource "aws_cloudformation_stack" "buildkite_agents" {
     BuildkiteAgentTokenParameterStorePath = aws_ssm_parameter.buildkite_agent_token.name
     BuildkiteAgentTags                    = join(",", each.value.tags)
     BuildkiteQueue                        = each.value.queue
-    ImageId                               = each.value.ami
+    # ImageId                               = each.value.ami
     OnDemandPercentage                    = each.value.on_demand_percentage
     InstanceTypes                         = each.value.instance
     InstanceRoleName                      = "${local.cluster_name}-buildkite-${each.key}-role"

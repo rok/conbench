@@ -211,14 +211,16 @@ variable "buildkite_agent_token" {
   default     = ""
 }
 
-variable "buildkite_agent_amis" {
-  description = "AMI IDs for Buildkite agents by platform"
-  type        = map(string)
-  default = {
-    # Amazon Linux 2023 AMIs (update these periodically)
-    # AMD64 (x86_64)
-    "amd64-linux" = "ami-0453ec754f44f9a4a" # Amazon Linux 2023 AMD64 us-east-1
-    # ARM64 (aarch64)
-    "arm64-linux" = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 ARM64 us-east-1
-  }
-}
+# variable "buildkite_agent_amis" {
+#   description = "AMI IDs for Buildkite agents by platform"
+#   type        = map(string)
+#   default = {
+#     # Amazon Linux 2023 AMIs (update these periodically)
+#     # AMD64 (x86_64)
+#     "amd64-linux" = "ami-0453ec754f44f9a4a" # Amazon Linux 2023 AMD64 us-east-1
+#     # ARM64 (aarch64)
+#     "arm64-linux" = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 ARM64 us-east-1
+#     # macOS Sonoma (update AMI ID for your region and desired macOS version)
+#     "amd64-macos" = "ami-0ef51d32f7d6e780d" # macOS Tahoe 26.x us-east-1
+#   }
+# }
