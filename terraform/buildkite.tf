@@ -20,6 +20,114 @@ resource "aws_ssm_parameter" "buildkite_agent_token" {
   )
 }
 
+# ============================================================================
+# SSM Parameters for Pipeline Configuration
+# ============================================================================
+
+resource "aws_ssm_parameter" "buildkite_api_base_url" {
+  name        = "/buildkite/config/api-base-url"
+  description = "Buildkite API Base URL"
+  type        = "String"
+  value       = var.buildkite_api_base_url
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "buildkite_org" {
+  name        = "/buildkite/config/org"
+  description = "Buildkite Organization"
+  type        = "String"
+  value       = var.buildkite_org
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "conbench_url" {
+  name        = "/buildkite/config/conbench-url"
+  description = "Conbench URL"
+  type        = "String"
+  value       = var.conbench_url
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "db_port" {
+  name        = "/buildkite/config/db-port"
+  description = "Database Port"
+  type        = "String"
+  value       = var.db_port
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "env" {
+  name        = "/buildkite/config/env"
+  description = "Environment (prod/staging/dev)"
+  type        = "String"
+  value       = var.environment
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "flask_app" {
+  name        = "/buildkite/config/flask-app"
+  description = "Flask Application Name"
+  type        = "String"
+  value       = var.flask_app
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "github_api_base_url" {
+  name        = "/buildkite/config/github-api-base-url"
+  description = "GitHub API Base URL"
+  type        = "String"
+  value       = var.github_api_base_url
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "github_repo" {
+  name        = "/buildkite/config/github-repo"
+  description = "GitHub Repository"
+  type        = "String"
+  value       = var.github_repo
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "github_repo_with_benchmarkable_commits" {
+  name        = "/buildkite/config/github-repo-benchmarkable"
+  description = "GitHub Repository with Benchmarkable Commits"
+  type        = "String"
+  value       = var.github_repo_with_benchmarkable_commits
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "max_commits_to_fetch" {
+  name        = "/buildkite/config/max-commits-to-fetch"
+  description = "Maximum Commits to Fetch"
+  type        = "String"
+  value       = var.max_commits_to_fetch
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "pypi_api_base_url" {
+  name        = "/buildkite/config/pypi-api-base-url"
+  description = "PyPI API Base URL"
+  type        = "String"
+  value       = var.pypi_api_base_url
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "pypi_project" {
+  name        = "/buildkite/config/pypi-project"
+  description = "PyPI Project Name"
+  type        = "String"
+  value       = var.pypi_project
+  tags        = local.common_tags
+}
+
+resource "aws_ssm_parameter" "slack_api_base_url" {
+  name        = "/buildkite/config/slack-api-base-url"
+  description = "Slack API Base URL"
+  type        = "String"
+  value       = var.slack_api_base_url
+  tags        = local.common_tags
+}
+
 # IAM policy for Buildkite agents
 resource "aws_iam_policy" "buildkite_agent" {
   name        = "${local.cluster_name}-buildkite-agent-policy"
@@ -50,6 +158,15 @@ resource "aws_iam_policy" "buildkite_agent" {
           "logs:PutLogEvents"
         ]
         Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = "arn:aws:ssm:${var.aws_region}:*:parameter/buildkite/*"
       }
     ]
   })
@@ -172,17 +289,17 @@ resource "aws_cloudformation_stack" "buildkite_agents" {
 # Pipeline configurations
 locals {
   arrow_bci_pipelines = {
-    arrow-bci-deploy = {
-      folder                     = "deploy"
-      queue                      = "amd64-m5-4xlarge-linux"
-      trigger_mode               = "code"
-      publish_commit_status      = true
-      build_branches             = true
-      build_pull_requests        = false
-      skip_pull_request_builds_for_existing_commits = true
-      cancel_intermediate_builds = false
-    }
-    arrow-bci-schedule-and-publish = {
+    # arrow-bci-deploy = {
+    #   folder                     = "deploy"
+    #   queue                      = "amd64-m5-4xlarge-linux"
+    #   trigger_mode               = "code"
+    #   publish_commit_status      = true
+    #   build_branches             = true
+    #   build_pull_requests        = false
+    #   skip_pull_request_builds_for_existing_commits = true
+    #   cancel_intermediate_builds = false
+    # }
+    test_arrow-bci-schedule-and-publish = {
       folder                     = "schedule_and_publish"
       queue                      = "amd64-m5-4xlarge-linux"
       trigger_mode               = "none"
@@ -192,26 +309,26 @@ locals {
       skip_pull_request_builds_for_existing_commits = true
       cancel_intermediate_builds = true
     }
-    arrow-bci-test = {
-      folder                     = "test"
-      queue                      = "amd64-m5-4xlarge-linux"
-      trigger_mode               = "code"
-      publish_commit_status      = true
-      build_branches             = true
-      build_pull_requests        = true
-      skip_pull_request_builds_for_existing_commits = true
-      cancel_intermediate_builds = false
-    }
-    arrow-bci-benchmark-build-test = {
-      folder                     = "benchmark-test"
-      queue                      = "amd64-m5-4xlarge-linux"
-      trigger_mode               = "none"
-      publish_commit_status      = false
-      build_branches             = false
-      build_pull_requests        = false
-      skip_pull_request_builds_for_existing_commits = true
-      cancel_intermediate_builds = false
-    }
+    # arrow-bci-test = {
+    #   folder                     = "test"
+    #   queue                      = "amd64-m5-4xlarge-linux"
+    #   trigger_mode               = "code"
+    #   publish_commit_status      = true
+    #   build_branches             = true
+    #   build_pull_requests        = true
+    #   skip_pull_request_builds_for_existing_commits = true
+    #   cancel_intermediate_builds = false
+    # }
+  #   arrow-bci-benchmark-build-test = {
+  #     folder                     = "benchmark-test"
+  #     queue                      = "amd64-m5-4xlarge-linux"
+  #     trigger_mode               = "none"
+  #     publish_commit_status      = false
+  #     build_branches             = false
+  #     build_pull_requests        = false
+  #     skip_pull_request_builds_for_existing_commits = true
+  #     cancel_intermediate_builds = false
+  #   }
   }
 }
 
@@ -230,7 +347,7 @@ resource "buildkite_pipeline" "arrow_bci_pipelines" {
       command: buildkite-agent pipeline upload buildkite/${each.value.folder}/pipeline.yml
   EOT
 
-  provider_settings {
+  provider_settings = {
     trigger_mode                                  = each.value.trigger_mode
     publish_commit_status                         = each.value.publish_commit_status
     build_branches                                = each.value.build_branches
@@ -241,11 +358,11 @@ resource "buildkite_pipeline" "arrow_bci_pipelines" {
   cancel_intermediate_builds = each.value.cancel_intermediate_builds
 }
 
-# Schedule for arrow-bci-schedule-and-publish pipeline - runs every 15 minutes
-resource "buildkite_pipeline_schedule" "every_15_mins" {
-  pipeline_id = buildkite_pipeline.arrow_bci_pipelines["arrow-bci-schedule-and-publish"].id
-  label       = "Every 15 minutes"
-  cronline    = "*/15 * * * *"
-  branch      = buildkite_pipeline.arrow_bci_pipelines["arrow-bci-schedule-and-publish"].default_branch
-  enabled     = true
-}
+# # Schedule for arrow-bci-schedule-and-publish pipeline - runs every 15 minutes
+# resource "buildkite_pipeline_schedule" "every_15_mins" {
+#   pipeline_id = buildkite_pipeline.arrow_bci_pipelines["test_arrow-bci-schedule-and-publish"].id
+#   label       = "Every 15 minutes"
+#   cronline    = "*/15 * * * *"
+#   branch      = buildkite_pipeline.arrow_bci_pipelines["test_arrow-bci-schedule-and-publish"].default_branch
+#   enabled     = true
+# }

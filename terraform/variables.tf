@@ -221,7 +221,74 @@ variable "buildkite_api_token" {
 variable "buildkite_org" {
   description = "Buildkite organization slug"
   type        = string
-  default     = "apache-arrow" # Change to your Buildkite organization slug
+  default     = "apache-arrow"
+}
+
+# Pipeline Configuration Variables
+variable "buildkite_api_base_url" {
+  description = "Buildkite API base URL"
+  type        = string
+  default     = "https://api.buildkite.com/v2"
+}
+
+variable "conbench_url" {
+  description = "Conbench application URL"
+  type        = string
+  default     = "https://conbench.arrow-dev.org"
+}
+
+variable "db_port" {
+  description = "Database port"
+  type        = string
+  default     = "5432"
+}
+
+variable "flask_app" {
+  description = "Flask application name"
+  type        = string
+  default     = "conbench"
+}
+
+variable "github_api_base_url" {
+  description = "GitHub API base URL"
+  type        = string
+  default     = "https://api.github.com"
+}
+
+variable "github_repo" {
+  description = "GitHub repository (format: owner/repo)"
+  type        = string
+  default     = "apache/arrow"
+}
+
+variable "github_repo_with_benchmarkable_commits" {
+  description = "GitHub repository with benchmarkable commits"
+  type        = string
+  default     = "apache/arrow"
+}
+
+variable "max_commits_to_fetch" {
+  description = "Maximum number of commits to fetch"
+  type        = string
+  default     = "100"
+}
+
+variable "pypi_api_base_url" {
+  description = "PyPI API base URL"
+  type        = string
+  default     = "https://pypi.org/pypi"
+}
+
+variable "pypi_project" {
+  description = "PyPI project name"
+  type        = string
+  default     = "pyarrow"
+}
+
+variable "slack_api_base_url" {
+  description = "Slack API base URL"
+  type        = string
+  default     = "https://slack.com/api"
 }
 
 # variable "buildkite_agent_amis" {
