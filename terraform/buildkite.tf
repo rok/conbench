@@ -166,32 +166,86 @@ resource "aws_cloudformation_stack" "buildkite_agents" {
 }
 
 # ============================================================================
-# Buildkite Pipeline Management (Optional - for testing)
+# Buildkite Pipeline Management
 # ============================================================================
 
-# Example: Create a simple test pipeline
-# Uncomment to create a Buildkite pipeline via Terraform
+# Pipeline configurations
+locals {
+  arrow_bci_pipelines = {
+    arrow-bci-deploy = {
+      folder                     = "deploy"
+      queue                      = "amd64-m5-4xlarge-linux"
+      trigger_mode               = "code"
+      publish_commit_status      = true
+      build_branches             = true
+      build_pull_requests        = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds = false
+    }
+    arrow-bci-schedule-and-publish = {
+      folder                     = "schedule_and_publish"
+      queue                      = "amd64-m5-4xlarge-linux"
+      trigger_mode               = "none"
+      publish_commit_status      = false
+      build_branches             = false
+      build_pull_requests        = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds = true
+    }
+    arrow-bci-test = {
+      folder                     = "test"
+      queue                      = "amd64-m5-4xlarge-linux"
+      trigger_mode               = "code"
+      publish_commit_status      = true
+      build_branches             = true
+      build_pull_requests        = true
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds = false
+    }
+    arrow-bci-benchmark-build-test = {
+      folder                     = "benchmark-test"
+      queue                      = "amd64-m5-4xlarge-linux"
+      trigger_mode               = "none"
+      publish_commit_status      = false
+      build_branches             = false
+      build_pull_requests        = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds = false
+    }
+  }
+}
 
-resource "buildkite_pipeline" "test_pipeline" {
-  name       = "conbench-test"
-  repository = "https://github.com/conbench/conbench.git"
-
-  # Simple inline step
-  steps = <<-EOT
-  steps:
-    - label: ":hammer: Test Build"
-      command: "echo 'Hello from Buildkite!'"
-      agents:
-        queue: "amd64-m5-4xlarge-linux"
-  EOT
-
+# Arrow Benchmarks CI Pipelines
+resource "buildkite_pipeline" "arrow_bci_pipelines" {
+  for_each       = local.arrow_bci_pipelines
+  name           = each.key
+  repository     = "https://github.com/arctosalliance/arrow-benchmarks-ci.git"
   default_branch = "main"
 
-  provider_settings = {
-    trigger_mode                                  = "none"
-    publish_commit_status                         = false
-    build_branches                                = false
-    build_pull_requests                           = false
-    skip_pull_request_builds_for_existing_commits = true
+  steps = <<-EOT
+  agents:
+    queue: "${each.value.queue}"
+  steps:
+    - label: ":pipeline: Pipeline upload"
+      command: buildkite-agent pipeline upload buildkite/${each.value.folder}/pipeline.yml
+  EOT
+
+  provider_settings {
+    trigger_mode                                  = each.value.trigger_mode
+    publish_commit_status                         = each.value.publish_commit_status
+    build_branches                                = each.value.build_branches
+    build_pull_requests                           = each.value.build_pull_requests
+    skip_pull_request_builds_for_existing_commits = each.value.skip_pull_request_builds_for_existing_commits
   }
+
+  cancel_intermediate_builds = each.value.cancel_intermediate_builds
+}
+
+# Schedule for arrow-bci-schedule-and-publish pipeline - runs every 15 minutes
+resource "buildkite_pipeline_schedule" "every_15_mins" {
+  pipeline_id = buildkite_pipeline.arrow_bci_pipelines["arrow-bci-schedule-and-publish"].id
+  label       = "Every 15 minutes"
+  cronline    = "*/15 * * * *"
+  branch      = buildkite_pipeline.arrow_bci_pipelines["arrow-bci-schedule-and-publish"].default_branch
+  enabled     = true
 }
