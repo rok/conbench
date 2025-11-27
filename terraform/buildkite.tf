@@ -1,5 +1,8 @@
 # Buildkite Agent Infrastructure for Arrow Benchmarks
 
+# Get AWS account ID for unique queue names
+data "aws_caller_identity" "current" {}
+
 # Create a dedicated agent token for benchmark machines
 resource "buildkite_agent_token" "benchmark_machines" {
   description = "BK agent token for Benchmark Machines on Arrow AWS account (NEW)"
@@ -178,8 +181,8 @@ resource "aws_iam_policy" "buildkite_agent" {
 locals {
   buildkite_stacks = {
     # ARM64 T4g 2xlarge for ARM benchmarks
-    arm64-t4g-2xlarge-linux = {
-      queue                = "arm64-t4g-2xlarge-linux"
+    arrow-arm64-t4g-2xlarge-linux = {
+      queue                = "aws-${data.aws_caller_identity.current.account_id}-arm64-t4g-2xlarge"
       tags                 = ["arch=arm64", "os=linux", "instance=t4g-2xlarge"]
       instance             = "t4g.2xlarge"
       platform             = "linux"
@@ -190,8 +193,8 @@ locals {
     }
 
     # AMD64 M5 4xlarge for general purpose benchmarks
-    amd64-m5-4xlarge-linux = {
-      queue                = "amd64-m5-4xlarge-linux"
+    arrow-amd64-m5-4xlarge-linux = {
+      queue                = "aws-${data.aws_caller_identity.current.account_id}-amd64-m5-4xlarge"
       tags                 = ["arch=amd64", "os=linux", "instance=m5-4xlarge"]
       instance             = "m5.4xlarge"
       platform             = "linux"
@@ -202,8 +205,8 @@ locals {
     }
 
     # AMD64 C6a 4xlarge for compute-optimized benchmarks
-    amd64-c6a-4xlarge-linux = {
-      queue                = "amd64-c6a-4xlarge-linux"
+    arrow-amd64-c6a-4xlarge-linux = {
+      queue                = "aws-${data.aws_caller_identity.current.account_id}-amd64-c6a-4xlarge"
       tags                 = ["arch=amd64", "os=linux", "instance=c6a-4xlarge"]
       instance             = "c6a.4xlarge"
       platform             = "linux"
@@ -215,8 +218,8 @@ locals {
 
     # TODO: macos agents requires custom image, we can prepare it with ansible or manually
     # # AMD64 mac2.metal for macOS benchmarks
-    # amd64-mac2-metal-macos = {
-    #   queue                = "amd64-mac2-metal-macos"
+    # arrow-amd64-mac2-metal-macos = {
+    #   queue                = "arrow-amd64-mac2-metal-macos"
     #   tags                 = ["arch=amd64", "os=macos", "instance=mac2-metal"]
     #   instance             = "mac2.metal"
     #   platform             = "macos"
@@ -299,16 +302,16 @@ locals {
     #   skip_pull_request_builds_for_existing_commits = true
     #   cancel_intermediate_builds = false
     # }
-    test_arrow-bci-schedule-and-publish = {
-      folder                     = "schedule_and_publish"
-      queue                      = "amd64-m5-4xlarge-linux"
-      trigger_mode               = "none"
-      publish_commit_status      = false
-      build_branches             = false
-      build_pull_requests        = false
-      skip_pull_request_builds_for_existing_commits = true
-      cancel_intermediate_builds = true
-    }
+    # test_arrow-bci-schedule-and-publish = {
+    #   folder                     = "schedule_and_publish"
+    #   queue                      = "amd64-m5-4xlarge-linux"
+    #   trigger_mode               = "none"
+    #   publish_commit_status      = false
+    #   build_branches             = false
+    #   build_pull_requests        = false
+    #   skip_pull_request_builds_for_existing_commits = true
+    #   cancel_intermediate_builds = true
+    # }
     # arrow-bci-test = {
     #   folder                     = "test"
     #   queue                      = "amd64-m5-4xlarge-linux"
@@ -319,16 +322,16 @@ locals {
     #   skip_pull_request_builds_for_existing_commits = true
     #   cancel_intermediate_builds = false
     # }
-  #   arrow-bci-benchmark-build-test = {
-  #     folder                     = "benchmark-test"
-  #     queue                      = "amd64-m5-4xlarge-linux"
-  #     trigger_mode               = "none"
-  #     publish_commit_status      = false
-  #     build_branches             = false
-  #     build_pull_requests        = false
-  #     skip_pull_request_builds_for_existing_commits = true
-  #     cancel_intermediate_builds = false
-  #   }
+    test_arrow-bci-benchmark-build-test-new = {
+      folder                     = "benchmark-test"
+      queue                      = local.buildkite_stacks["arrow-amd64-m5-4xlarge-linux"].queue
+      trigger_mode               = "none"
+      publish_commit_status      = false
+      build_branches             = false
+      build_pull_requests        = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds = false
+    }
   }
 }
 
@@ -340,6 +343,20 @@ resource "buildkite_pipeline" "arrow_bci_pipelines" {
   default_branch = "main"
 
   steps = <<-EOT
+  env:
+    BUILDKITE_API_BASE_URL: "${var.buildkite_api_base_url}"
+    BUILDKITE_ORG: "${var.buildkite_org}"
+    CONBENCH_URL: "${var.conbench_url}"
+    DB_PORT: "${var.db_port}"
+    ENV: "${var.environment}"
+    FLASK_APP: "${var.flask_app}"
+    GITHUB_API_BASE_URL: "${var.github_api_base_url}"
+    GITHUB_REPO: "${var.github_repo}"
+    GITHUB_REPO_WITH_BENCHMARKABLE_COMMITS: "${var.github_repo_with_benchmarkable_commits}"
+    MAX_COMMITS_TO_FETCH: "${var.max_commits_to_fetch}"
+    PYPI_API_BASE_URL: "${var.pypi_api_base_url}"
+    PYPI_PROJECT: "${var.pypi_project}"
+    SLACK_API_BASE_URL: "${var.slack_api_base_url}"
   agents:
     queue: "${each.value.queue}"
   steps:
