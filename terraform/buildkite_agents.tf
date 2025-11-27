@@ -110,6 +110,14 @@ resource "aws_ssm_parameter" "slack_api_base_url" {
   tags        = local.common_tags
 }
 
+resource "aws_ssm_parameter" "docker_registry" {
+  name        = "/buildkite/config/docker-registry"
+  description = "Docker Registry URL (ECR)"
+  type        = "String"
+  value       = "https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
+  tags        = local.common_tags
+}
+
 # IAM policy for Buildkite agents
 resource "aws_iam_policy" "buildkite_agent" {
   name        = "${local.cluster_name}-buildkite-agent-policy"
