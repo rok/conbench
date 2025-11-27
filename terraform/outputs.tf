@@ -186,13 +186,13 @@ output "deployment_hints" {
   }
 }
 
-# Buildkite Outputs
-output "buildkite_agent_queues" {
-  description = "Buildkite agent queue names"
-  value       = [for k, v in local.buildkite_stacks : v.queue]
-}
-
-output "buildkite_stack_names" {
-  description = "CloudFormation stack names for Buildkite agents"
-  value       = { for k, v in aws_cloudformation_stack.buildkite_agents : k => v.name }
-}
+# # Buildkite Outputs
+# output "buildkite_agent_queues" {
+#   description = "Buildkite agent queue names"
+#   value       = [for k, v in local.buildkite_stacks : v.queue]
+# }
+#
+# output "buildkite_stack_names" {
+#   description = "CloudFormation stack names for Buildkite agents"
+#   value       = { for k, v in aws_cloudformation_stack.buildkite_agents : k => v.name }
+# }

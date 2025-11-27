@@ -291,6 +291,24 @@ variable "slack_api_base_url" {
   default     = "https://slack.com/api"
 }
 
+variable "default_tags" {
+  description = "Default tags to apply to all resources"
+  type        = map(string)
+  default = {
+    # "environment"     = "production"
+    "team"            = "benchmarking"
+    "owner"           = "benchmarking"
+    "no_delete"       = "true"
+    "creation_method" = "terraform_arrow_infra"
+  }
+}
+
+variable "buildkite_bootstrap_script_url" {
+    description = "URL of the Buildkite agent bootstrap script"
+    type        = string
+    default     = "https://raw.githubusercontent.com/rok/conbench/refs/heads/main/terraform/buildkite-bootstrap.sh"
+}
+
 # variable "buildkite_agent_amis" {
 #   description = "AMI IDs for Buildkite agents by platform"
 #   type        = map(string)

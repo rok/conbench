@@ -1,369 +1,167 @@
 # Buildkite Agent Infrastructure for Arrow Benchmarks
 
-# Get AWS account ID for unique queue names
-data "aws_caller_identity" "current" {}
-
-# Create a dedicated agent token for benchmark machines
-resource "buildkite_agent_token" "benchmark_machines" {
+resource "buildkite_agent_token" "token_for_agents_in_arrow_computing_aws" {
   description = "BK agent token for Benchmark Machines on Arrow AWS account (NEW)"
 }
 
-# Store the agent token in AWS SSM Parameter Store
-resource "aws_ssm_parameter" "buildkite_agent_token" {
-  name        = "/buildkite/agent-token-benchmark-machines"
-  description = "Buildkite Agent Token for benchmark machines"
-  type        = "SecureString"
-  value       = buildkite_agent_token.benchmark_machines.token
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "buildkite-agent-token-benchmark-machines"
-    }
-  )
-}
+# # Arrow Benchmarks CI Pipelines
+# resource "buildkite_pipeline" "arrow_bci_pipelines" {
+#   for_each       = local.arrow_bci_pipelines
+#   name           = each.key
+#   repository     = "https://github.com/arctosalliance/arrow-benchmarks-ci.git"
+#   default_branch = "main"
+#
+#   steps = <<-EOT
+#   env:
+#     BUILDKITE_API_BASE_URL: "${var.buildkite_api_base_url}"
+#     BUILDKITE_ORG: "${var.buildkite_org}"
+#     CONBENCH_URL: "${var.conbench_url}"
+#     DB_PORT: "${var.db_port}"
+#     ENV: "${var.environment}"
+#     FLASK_APP: "${var.flask_app}"
+#     GITHUB_API_BASE_URL: "${var.github_api_base_url}"
+#     GITHUB_REPO: "${var.github_repo}"
+#     GITHUB_REPO_WITH_BENCHMARKABLE_COMMITS: "${var.github_repo_with_benchmarkable_commits}"
+#     MAX_COMMITS_TO_FETCH: "${var.max_commits_to_fetch}"
+#     PYPI_API_BASE_URL: "${var.pypi_api_base_url}"
+#     PYPI_PROJECT: "${var.pypi_project}"
+#     SLACK_API_BASE_URL: "${var.slack_api_base_url}"
+#   agents:
+#     queue: "${each.value.queue}"
+#   steps:
+#     - label: ":pipeline: Pipeline upload"
+#       command: buildkite-agent pipeline upload buildkite/${each.value.folder}/pipeline.yml
+#   EOT
+#
+#   provider_settings = {
+#     trigger_mode                                  = each.value.trigger_mode
+#     publish_commit_status                         = each.value.publish_commit_status
+#     build_branches                                = each.value.build_branches
+#     build_pull_requests                           = each.value.build_pull_requests
+#     skip_pull_request_builds_for_existing_commits = each.value.skip_pull_request_builds_for_existing_commits
+#   }
+#
+#   cancel_intermediate_builds = each.value.cancel_intermediate_builds
+# }
 
-# ============================================================================
-# SSM Parameters for Pipeline Configuration
-# ============================================================================
-
-resource "aws_ssm_parameter" "buildkite_api_base_url" {
-  name        = "/buildkite/config/api-base-url"
-  description = "Buildkite API Base URL"
-  type        = "String"
-  value       = var.buildkite_api_base_url
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "buildkite_org" {
-  name        = "/buildkite/config/org"
-  description = "Buildkite Organization"
-  type        = "String"
-  value       = var.buildkite_org
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "conbench_url" {
-  name        = "/buildkite/config/conbench-url"
-  description = "Conbench URL"
-  type        = "String"
-  value       = var.conbench_url
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "db_port" {
-  name        = "/buildkite/config/db-port"
-  description = "Database Port"
-  type        = "String"
-  value       = var.db_port
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "env" {
-  name        = "/buildkite/config/env"
-  description = "Environment (prod/staging/dev)"
-  type        = "String"
-  value       = var.environment
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "flask_app" {
-  name        = "/buildkite/config/flask-app"
-  description = "Flask Application Name"
-  type        = "String"
-  value       = var.flask_app
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "github_api_base_url" {
-  name        = "/buildkite/config/github-api-base-url"
-  description = "GitHub API Base URL"
-  type        = "String"
-  value       = var.github_api_base_url
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "github_repo" {
-  name        = "/buildkite/config/github-repo"
-  description = "GitHub Repository"
-  type        = "String"
-  value       = var.github_repo
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "github_repo_with_benchmarkable_commits" {
-  name        = "/buildkite/config/github-repo-benchmarkable"
-  description = "GitHub Repository with Benchmarkable Commits"
-  type        = "String"
-  value       = var.github_repo_with_benchmarkable_commits
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "max_commits_to_fetch" {
-  name        = "/buildkite/config/max-commits-to-fetch"
-  description = "Maximum Commits to Fetch"
-  type        = "String"
-  value       = var.max_commits_to_fetch
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "pypi_api_base_url" {
-  name        = "/buildkite/config/pypi-api-base-url"
-  description = "PyPI API Base URL"
-  type        = "String"
-  value       = var.pypi_api_base_url
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "pypi_project" {
-  name        = "/buildkite/config/pypi-project"
-  description = "PyPI Project Name"
-  type        = "String"
-  value       = var.pypi_project
-  tags        = local.common_tags
-}
-
-resource "aws_ssm_parameter" "slack_api_base_url" {
-  name        = "/buildkite/config/slack-api-base-url"
-  description = "Slack API Base URL"
-  type        = "String"
-  value       = var.slack_api_base_url
-  tags        = local.common_tags
-}
-
-# IAM policy for Buildkite agents
-resource "aws_iam_policy" "buildkite_agent" {
-  name        = "${local.cluster_name}-buildkite-agent-policy"
-  description = "IAM policy for Buildkite agents"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:GetParameter",
-          "ssm:GetParameters",
-          "ssm:GetParametersByPath"
-        ]
-        Resource = "arn:aws:ssm:${var.aws_region}:*:parameter/buildkite/*"
-      }
-    ]
-  })
-
-  tags = local.common_tags
-}
-
-# Buildkite Agent Stacks
 locals {
-  buildkite_stacks = {
-    # ARM64 T4g 2xlarge for ARM benchmarks
-    arrow-arm64-t4g-2xlarge-linux = {
-      queue                = "aws-${data.aws_caller_identity.current.account_id}-arm64-t4g-2xlarge"
-      tags                 = ["arch=arm64", "os=linux", "instance=t4g-2xlarge"]
-      instance             = "t4g.2xlarge"
-      platform             = "linux"
-      # ami                  = var.buildkite_agent_amis["arm64-linux"]
-      min_size             = 0
-      max_size             = 4
-      on_demand_percentage = 100
-    }
-
-    # AMD64 M5 4xlarge for general purpose benchmarks
-    arrow-amd64-m5-4xlarge-linux = {
-      queue                = "aws-${data.aws_caller_identity.current.account_id}-amd64-m5-4xlarge"
-      tags                 = ["arch=amd64", "os=linux", "instance=m5-4xlarge"]
-      instance             = "m5.4xlarge"
-      platform             = "linux"
-      # ami                  = var.buildkite_agent_amis["amd64-linux"]
-      min_size             = 0
-      max_size             = 4
-      on_demand_percentage = 100
-    }
-
-    # AMD64 C6a 4xlarge for compute-optimized benchmarks
-    arrow-amd64-c6a-4xlarge-linux = {
-      queue                = "aws-${data.aws_caller_identity.current.account_id}-amd64-c6a-4xlarge"
-      tags                 = ["arch=amd64", "os=linux", "instance=c6a-4xlarge"]
-      instance             = "c6a.4xlarge"
-      platform             = "linux"
-      # ami                  = var.buildkite_agent_amis["amd64-linux"]
-      min_size             = 0
-      max_size             = 4
-      on_demand_percentage = 100
-    }
-
-    # TODO: macos agents requires custom image, we can prepare it with ansible or manually
-    # # AMD64 mac2.metal for macOS benchmarks
-    # arrow-amd64-mac2-metal-macos = {
-    #   queue                = "arrow-amd64-mac2-metal-macos"
-    #   tags                 = ["arch=amd64", "os=macos", "instance=mac2-metal"]
-    #   instance             = "mac2.metal"
-    #   platform             = "macos"
-    #   # ami                  = var.buildkite_agent_amis["amd64-macos"]
-    #   min_size             = 0
-    #   max_size             = 2
-    #   on_demand_percentage = 100
-    # }
-  }
-}
-
-# Create CloudFormation stacks for each Buildkite agent type
-resource "aws_cloudformation_stack" "buildkite_agents" {
-  for_each = local.buildkite_stacks
-
-  name = "${local.cluster_name}-buildkite-${each.key}"
-
-  parameters = {
-    VpcId = aws_vpc.main.id
-    Subnets = join(",", [
-      aws_subnet.public[0].id,
-      aws_subnet.public[1].id
-    ])
-    BootstrapScriptUrl                    = "https://raw.githubusercontent.com/rok/conbench/refs/heads/main/terraform/buildkite-bootstrap.sh"
-    BuildkiteAgentTokenParameterStorePath = aws_ssm_parameter.buildkite_agent_token.name
-    BuildkiteAgentTags                    = join(",", each.value.tags)
-    BuildkiteQueue                        = each.value.queue
-    # ImageId                               = each.value.ami
-    OnDemandPercentage                    = each.value.on_demand_percentage
-    InstanceTypes                         = each.value.instance
-    InstanceRoleName                      = "${local.cluster_name}-buildkite-${each.key}-role"
-    InstanceOperatingSystem               = each.value.platform
-    AgentsPerInstance                     = 1
-    ECRAccessPolicy                       = "full"
-    ManagedPolicyARNs = join(",", [
-      aws_iam_policy.buildkite_agent.arn,
-      "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    ])
-    MinSize = each.value.min_size
-    MaxSize = each.value.max_size
-  }
-
-  capabilities = [
-    "CAPABILITY_IAM",
-    "CAPABILITY_NAMED_IAM",
-    "CAPABILITY_AUTO_EXPAND"
-  ]
-
-  # Buildkite AWS Stack CloudFormation template
-  template_url = "https://s3.amazonaws.com/buildkite-aws-stack/v6.21.0/aws-stack.yml"
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name  = "${local.cluster_name}-buildkite-${each.key}"
-      Queue = each.value.queue
-    }
-  )
-
-  depends_on = [
-    aws_ssm_parameter.buildkite_agent_token,
-    aws_iam_policy.buildkite_agent
-  ]
-}
-
-# ============================================================================
-# Buildkite Pipeline Management
-# ============================================================================
-
-# Pipeline configurations
-locals {
-  arrow_bci_pipelines = {
-    # arrow-bci-deploy = {
-    #   folder                     = "deploy"
-    #   queue                      = "amd64-m5-4xlarge-linux"
-    #   trigger_mode               = "code"
-    #   publish_commit_status      = true
-    #   build_branches             = true
-    #   build_pull_requests        = false
-    #   skip_pull_request_builds_for_existing_commits = true
-    #   cancel_intermediate_builds = false
-    # }
-    # test_arrow-bci-schedule-and-publish = {
-    #   folder                     = "schedule_and_publish"
-    #   queue                      = "amd64-m5-4xlarge-linux"
-    #   trigger_mode               = "none"
-    #   publish_commit_status      = false
-    #   build_branches             = false
-    #   build_pull_requests        = false
-    #   skip_pull_request_builds_for_existing_commits = true
-    #   cancel_intermediate_builds = true
-    # }
-    # arrow-bci-test = {
-    #   folder                     = "test"
-    #   queue                      = "amd64-m5-4xlarge-linux"
-    #   trigger_mode               = "code"
-    #   publish_commit_status      = true
-    #   build_branches             = true
-    #   build_pull_requests        = true
-    #   skip_pull_request_builds_for_existing_commits = true
-    #   cancel_intermediate_builds = false
-    # }
-    test_arrow-bci-benchmark-build-test-new = {
-      folder                     = "benchmark-test"
-      queue                      = local.buildkite_stacks["arrow-amd64-m5-4xlarge-linux"].queue
-      trigger_mode               = "none"
-      publish_commit_status      = false
-      build_branches             = false
-      build_pull_requests        = false
+  new-conbench_pipelines = {
+    new-conbench-deploy = {
+      folder                                        = "conbench-deploy"
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
       skip_pull_request_builds_for_existing_commits = true
-      cancel_intermediate_builds = false
+    }
+    new-conbench-rollback = {
+      folder                                        = "conbench-rollback"
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+    }
+    # new-conbench-deploy-velox = {
+    #   folder                                        = "conbench-deploy"
+    #   trigger_mode                                  = "none"
+    #   publish_commit_status                         = false
+    #   build_branches                                = false
+    #   build_pull_requests                           = false
+    #   skip_pull_request_builds_for_existing_commits = true
+    # }
+    # new-conbench-rollback-velox = {
+    #   folder                                        = "conbench-rollback"
+    #   trigger_mode                                  = "none"
+    #   publish_commit_status                         = false
+    #   build_branches                                = false
+    #   build_pull_requests                           = false
+    #   skip_pull_request_builds_for_existing_commits = true
+    # }
+  }
+  webhooks_pipelines = {
+    new-webhooks-deploy = {
+      folder                                        = "deploy"
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+    }
+    new-webhooks-rollback = {
+      folder                                        = "rollback"
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+    }
+    new-webhooks-test = {
+      folder                                        = "test"
+      trigger_mode                                  = "code"
+      publish_commit_status                         = true
+      build_branches                                = true
+      build_pull_requests                           = true
+      skip_pull_request_builds_for_existing_commits = true
+    }
+  }
+  new-arrow_bci_pipelines = {
+    new-arrow-bci-deploy = {
+      folder                                        = "deploy"
+      queue                                         = aws_cloudformation_stack.arrow-bci.parameters.BuildkiteQueue
+      trigger_mode                                  = "code"
+      publish_commit_status                         = true
+      build_branches                                = true
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds                    = false
+    }
+    new-arrow-bci-schedule-and-publish = {
+      folder                                        = "schedule_and_publish"
+      queue                                         = aws_cloudformation_stack.arrow-bci.parameters.BuildkiteQueue
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds                    = true
+    }
+    new-arrow-bci-test = {
+      folder                                        = "test"
+      queue                                         = aws_cloudformation_stack.arrow-bci-test.parameters.BuildkiteQueue
+      trigger_mode                                  = "code"
+      publish_commit_status                         = true
+      build_branches                                = true
+      build_pull_requests                           = true
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds                    = false
+    }
+    new-arrow-bci-benchmark-build-test = {
+      folder                                        = "benchmark-test"
+      queue                                         = aws_cloudformation_stack.arrow-bci-benchmark-build-test.parameters.BuildkiteQueue
+      trigger_mode                                  = "none"
+      publish_commit_status                         = false
+      build_branches                                = false
+      build_pull_requests                           = false
+      skip_pull_request_builds_for_existing_commits = true
+      cancel_intermediate_builds                    = false
     }
   }
 }
 
-# Arrow Benchmarks CI Pipelines
-resource "buildkite_pipeline" "arrow_bci_pipelines" {
-  for_each       = local.arrow_bci_pipelines
+resource "buildkite_pipeline" "conbench_pipelines" {
+  for_each       = local.new-conbench_pipelines
   name           = each.key
-  repository     = "https://github.com/arctosalliance/arrow-benchmarks-ci.git"
-  default_branch = "main"
-
-  steps = <<-EOT
-  env:
-    BUILDKITE_API_BASE_URL: "${var.buildkite_api_base_url}"
-    BUILDKITE_ORG: "${var.buildkite_org}"
-    CONBENCH_URL: "${var.conbench_url}"
-    DB_PORT: "${var.db_port}"
-    ENV: "${var.environment}"
-    FLASK_APP: "${var.flask_app}"
-    GITHUB_API_BASE_URL: "${var.github_api_base_url}"
-    GITHUB_REPO: "${var.github_repo}"
-    GITHUB_REPO_WITH_BENCHMARKABLE_COMMITS: "${var.github_repo_with_benchmarkable_commits}"
-    MAX_COMMITS_TO_FETCH: "${var.max_commits_to_fetch}"
-    PYPI_API_BASE_URL: "${var.pypi_api_base_url}"
-    PYPI_PROJECT: "${var.pypi_project}"
-    SLACK_API_BASE_URL: "${var.slack_api_base_url}"
+  repository     = "https://github.com/conbench/conbench.git"
+  steps          = <<-EOT
   agents:
-    queue: "${each.value.queue}"
+    queue: "${aws_cloudformation_stack.conbench.parameters.BuildkiteQueue}"
   steps:
     - label: ":pipeline: Pipeline upload"
-      command: buildkite-agent pipeline upload buildkite/${each.value.folder}/pipeline.yml
+      command: buildkite-agent pipeline upload .buildkite/${each.value.folder}/pipeline.yml
   EOT
-
+  default_branch = "main"
   provider_settings = {
     trigger_mode                                  = each.value.trigger_mode
     publish_commit_status                         = each.value.publish_commit_status
@@ -371,15 +169,55 @@ resource "buildkite_pipeline" "arrow_bci_pipelines" {
     build_pull_requests                           = each.value.build_pull_requests
     skip_pull_request_builds_for_existing_commits = each.value.skip_pull_request_builds_for_existing_commits
   }
+}
 
+# resource "buildkite_pipeline" "webhooks_pipelines" {
+#   for_each       = local.webhooks_pipelines
+#   name           = each.key
+#   repository     = "git@github.com:voltrondata-labs/webhooks.git"
+#   steps          = <<-EOT
+#   agents:
+#     queue: "${aws_cloudformation_stack.conbench.parameters.BuildkiteQueue}"
+#   steps:
+#     - label: ":pipeline: Pipeline upload"
+#       command: buildkite-agent pipeline upload .buildkite/${each.value.folder}/pipeline.yml
+#   EOT
+#   default_branch = "main"
+#   provider_settings = {
+#     trigger_mode                                  = each.value.trigger_mode
+#     publish_commit_status                         = each.value.publish_commit_status
+#     build_branches                                = each.value.build_branches
+#     build_pull_requests                           = each.value.build_pull_requests
+#     skip_pull_request_builds_for_existing_commits = each.value.skip_pull_request_builds_for_existing_commits
+#   }
+# }
+
+resource "buildkite_pipeline" "arrow_bci_pipelines" {
+  for_each       = local.new-arrow_bci_pipelines
+  name           = each.key
+  repository     = "https://github.com/arctosalliance/arrow-benchmarks-ci.git"
+  steps          = <<-EOT
+  agents:
+    queue: "${each.value.queue}"
+  steps:
+    - label: ":pipeline: Pipeline upload"
+      command: buildkite-agent pipeline upload buildkite/${each.value.folder}/pipeline.yml
+  EOT
+  default_branch = "main"
+  provider_settings = {
+    trigger_mode                                  = each.value.trigger_mode
+    publish_commit_status                         = each.value.publish_commit_status
+    build_branches                                = each.value.build_branches
+    build_pull_requests                           = each.value.build_pull_requests
+    skip_pull_request_builds_for_existing_commits = each.value.skip_pull_request_builds_for_existing_commits
+  }
   cancel_intermediate_builds = each.value.cancel_intermediate_builds
 }
 
-# # Schedule for arrow-bci-schedule-and-publish pipeline - runs every 15 minutes
 # resource "buildkite_pipeline_schedule" "every_15_mins" {
-#   pipeline_id = buildkite_pipeline.arrow_bci_pipelines["test_arrow-bci-schedule-and-publish"].id
+#   pipeline_id = buildkite_pipeline.arrow_bci_pipelines["new-arrow-bci-schedule-and-publish"].id
 #   label       = "Every 15 minutes"
 #   cronline    = "*/15 * * * *"
-#   branch      = buildkite_pipeline.arrow_bci_pipelines["test_arrow-bci-schedule-and-publish"].default_branch
+#   branch      = buildkite_pipeline.arrow_bci_pipelines["new-arrow-bci-schedule-and-publish"].default_branch
 #   enabled     = true
 # }
