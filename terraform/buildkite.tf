@@ -153,8 +153,11 @@ locals {
 resource "buildkite_pipeline" "conbench_pipelines" {
   for_each       = local.new-conbench_pipelines
   name           = each.key
-  repository     = "https://github.com/conbench/conbench.git"
+  repository     = "https://github.com/rok/conbench.git"
   steps          = <<-EOT
+  env:
+    DOCKER_REGISTRY: "${aws_ssm_parameter.docker_registry.value}"
+    FLASK_APP:       "conbench"
   agents:
     queue: "${aws_cloudformation_stack.conbench.parameters.BuildkiteQueue}"
   steps:
@@ -197,6 +200,9 @@ resource "buildkite_pipeline" "arrow_bci_pipelines" {
   name           = each.key
   repository     = "https://github.com/arctosalliance/arrow-benchmarks-ci.git"
   steps          = <<-EOT
+  env:
+    DOCKER_REGISTRY: "${aws_ssm_parameter.docker_registry.value}"
+    FLASK_APP:       "conbench"
   agents:
     queue: "${each.value.queue}"
   steps:

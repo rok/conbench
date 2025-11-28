@@ -114,7 +114,7 @@ resource "aws_ssm_parameter" "docker_registry" {
   name        = "/buildkite/config/docker-registry"
   description = "Docker Registry URL (ECR)"
   type        = "String"
-  value       = "https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
+  value       = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
   tags        = local.common_tags
 }
 
@@ -188,7 +188,7 @@ resource "aws_cloudformation_stack" "conbench" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 2
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",
@@ -242,7 +242,7 @@ resource "aws_cloudformation_stack" "arrow-bci-test" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 10
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",
@@ -267,7 +267,7 @@ resource "aws_cloudformation_stack" "arrow-bci-benchmark-build-test" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 10
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",
@@ -296,7 +296,7 @@ resource "aws_cloudformation_stack" "arm64-t4g-2xlarge-linux" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 2
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",
@@ -324,7 +324,7 @@ resource "aws_cloudformation_stack" "amd64-m5-4xlarge-linux" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 10
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",
@@ -352,7 +352,7 @@ resource "aws_cloudformation_stack" "amd64-c6a-4xlarge-linux" {
     ECRAccessPolicy                       = "full"
     MinSize                               = 0
     MaxSize                               = 10
-    SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
+    # SecretsBucket                         = "${var.buildkite_org}-buildkite-secrets"
   }
   capabilities = [
     "CAPABILITY_IAM",

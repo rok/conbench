@@ -59,6 +59,9 @@ provider "buildkite" {
   organization = var.buildkite_org
 }
 
+# Get AWS account ID for resource naming
+data "aws_caller_identity" "current" {}
+
 locals {
   cluster_name = "conbench-${var.environment}"
 
