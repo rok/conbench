@@ -25,13 +25,8 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-path: /api/ping/
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
     alb.ingress.kubernetes.io/success-codes: '200'
-    # Configure exposure to Internet.
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
-    # Docs about ssl-redirect: "Once enabled, every HTTP listener will be
-    # configured with a default action which redirects to HTTPS, other rules
-    # will be ignored." That is preclisely what we want, a no-brainer
-    # configuration parameter that disallows serving traffic via non-TLS.
-    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    # Configure exposure to Internet - HTTPS only
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
     # The ALB "idle timeout" Must be shorter than the TCP conn
     # keepalive-related timeout constant of the other end, see
     # https://github.com/conbench/conbench/issues/1156 -- Note that this is
